@@ -2,7 +2,7 @@
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 
-export default function WelcomeScreen({ onStart, lang }) {
+export default function WelcomeScreen({ onStart, onLogin, lang }) {
   const t = useT(lang);
   return (
     <div className="welcome">
@@ -26,7 +26,7 @@ export default function WelcomeScreen({ onStart, lang }) {
           <button className="btn btn-primary btn-lg btn-block" onClick={onStart}>
             {t('get_started')} <Icon name="arrowRight" size={18} />
           </button>
-          <button className="btn btn-ghost btn-block">{t('already_account')}</button>
+          <button className="btn btn-ghost btn-block" onClick={onLogin}>{t('already_account')}</button>
         </div>
       </div>
     </div>

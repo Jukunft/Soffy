@@ -1,30 +1,49 @@
 'use client';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
-import { CATEGORIES, DEALS, TASTES } from '@/lib/data';
+import { CATEGORIES, TASTES } from '@/lib/data';
 import { SoffyAPI } from '@/lib/api';
+import FilterDrawer, { DEFAULT_FILTERS } from '@/components/FilterDrawer';
 
-export default function FeedScreen({ prefs, lang, onRestart, onOpenMenu, onOpenMatches }) {
+export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOpenMatches, onOpenPaywall }) {
   const t = useT(lang);
   const [activeCat, setActiveCat] = useState('all');
   const [matched, setMatched] = useState(null);
-  const [swiped, setSwiped] = useState([]);
   const [matchedDeals, setMatchedDeals] = useState([]);
+  const [deck, setDeck] = useState([]);
+  const [capped, setCapped] = useState(false);
+  const [swipesToday, setSwipesToday] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [boostToast, setBoostToast] = useState(false);
+
+  const activeFilterCount = useMemo(() => {
+    let n = 0;
+    if (filters.minDiscount > 0) n++;
+    if (filters.distance !== null) n++;
+    if (filters.sort !== 'affinity') n++;
+    return n;
+  }, [filters]);
+
+  const loadDeck = useCallback(() => {
+    setLoading(true);
+    return SoffyAPI.getDeck({ prefs, cat: activeCat, filters }).then(r => {
+      setDeck(r.deck);
+      setCapped(!!r.capped);
+      setSwipesToday(r.swipesToday || r.cap || 0);
+      setLoading(false);
+    });
+  }, [prefs, activeCat, filters]);
+
+  useEffect(() => { loadDeck(); }, [loadDeck]);
 
   useEffect(() => {
     SoffyAPI.getMatches().then(r =>
       setMatchedDeals(r.matches.map(m => m.dealId))
     );
   }, []);
-
-  const feed = useMemo(() => {
-    return DEALS.filter(d =>
-      prefs.cats.includes(d.cat) &&
-      d.tastes.some(tid => prefs.tastes.includes(tid)) &&
-      !swiped.includes(d.id)
-    ).filter(d => activeCat === 'all' || d.cat === activeCat);
-  }, [prefs, swiped, activeCat]);
 
   const catChips = useMemo(() => {
     return [
@@ -36,19 +55,61 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenMenu, onOpenM
   }, [prefs, lang, t]);
 
   const handleSwipe = (deal, dir) => {
-    setSwiped(prev => [...prev, deal.id]);
+    // haptic por dirección
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(dir === 'right' ? [12, 30, 12] : 10);
+    }
+    setDeck(d => d.filter(x => x.id !== deal.id));
     SoffyAPI.postSwipe({ dealId: deal.id, dir }).then(({ match }) => {
       if (match) {
         setMatchedDeals(prev => [...prev, deal.id]);
-        if (deal.match >= 85) setMatched(deal);
+        if (deal.match >= 85) {
+          if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 30]);
+          setMatched(deal);
+        }
+      }
+    });
+  };
+
+  const handleRewind = () => {
+    SoffyAPI.undoLastSwipe().then(({ undone }) => {
+      if (!undone) return;
+      loadDeck();
+      if (undone.dir === 'right') {
+        setMatchedDeals(m => m.filter(id => id !== undone.dealId));
       }
     });
   };
 
   const restart = () => {
-    setSwiped([]);
-    setMatchedDeals([]);
+    SoffyAPI.resetSwipes().then(() => loadDeck());
     setMatched(null);
+  };
+
+  // keyboard shortcuts — QA en desktop
+  useEffect(() => {
+    const onKey = (e) => {
+      if (filterOpen || matched || capped) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (!deck[0]) return;
+      if (e.key === 'ArrowLeft')      { e.preventDefault(); handleSwipe(deck[0], 'left'); }
+      else if (e.key === 'ArrowRight'){ e.preventDefault(); handleSwipe(deck[0], 'right'); }
+      else if (e.code === 'Space')    { e.preventDefault(); handleBoost(); }
+      else if (e.key === 'Backspace') { e.preventDefault(); handleRewind(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deck, filterOpen, matched, capped]);
+
+  const handleBoost = () => {
+    SoffyAPI.getBoost({ prefs }).then(({ deal }) => {
+      if (!deal) return;
+      setDeck(d => [deal, ...d.filter(x => x.id !== deal.id)]);
+      setBoostToast(true);
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(25);
+      setTimeout(() => setBoostToast(false), 2200);
+    });
   };
 
   return (
@@ -58,14 +119,15 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenMenu, onOpenM
           <img src="/assets/soffy-logo.png" alt="Soffy" style={{ height: 28 }} />
         </div>
         <div className="feed-topbar-right">
-          <button className="icon-btn" aria-label="Filters">
+          <button className="icon-btn" onClick={() => setFilterOpen(true)} aria-label="Filters">
             <Icon name="sliders" size={18} />
+            {activeFilterCount > 0 && <span className="badge">{activeFilterCount}</span>}
           </button>
           <button className="icon-btn" onClick={onOpenMatches} aria-label="Matches">
             <Icon name="bookmark" size={18} />
             {matchedDeals.length > 0 && <span className="badge">{matchedDeals.length}</span>}
           </button>
-          <button className="icon-btn" onClick={onOpenMenu} aria-label="Menu">
+          <button className="icon-btn" onClick={onOpenProfile} aria-label="Profile">
             <Icon name="user" size={18} />
           </button>
         </div>
@@ -84,12 +146,20 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenMenu, onOpenM
       </div>
 
       <div className="deck-wrap">
-        {feed.length === 0 ? (
+        {loading ? (
+          <DeckSkeleton />
+        ) : capped ? (
+          <CapHit
+            lang={lang}
+            swipes={swipesToday}
+            onUpgrade={() => onOpenPaywall && onOpenPaywall('daily_cap')}
+          />
+        ) : deck.length === 0 ? (
           <EmptyDeck onRestart={restart} lang={lang} />
         ) : (
           <div className="deck">
-            {feed.slice(0, 3).reverse().map((deal, idxReversed) => {
-              const idx = feed.slice(0, 3).length - 1 - idxReversed;
+            {deck.slice(0, 3).reverse().map((deal, idxReversed) => {
+              const idx = Math.min(deck.length, 3) - 1 - idxReversed;
               return (
                 <SwipeCard
                   key={deal.id}
@@ -105,33 +175,26 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenMenu, onOpenM
         )}
       </div>
 
-      {feed.length > 0 && (
+      {!loading && !capped && deck.length > 0 && (
         <div className="action-bar">
-          <button className="action-btn small" aria-label="Rewind" onClick={() => {
-            if (swiped.length) {
-              SoffyAPI.undoLastSwipe().then(() => {
-                setSwiped(s => s.slice(0, -1));
-                setMatchedDeals(m => m.slice(0, -1));
-              });
-            }
-          }}>
+          <button className="action-btn small" aria-label="Rewind" onClick={handleRewind}>
             <Icon name="refresh" size={18} />
           </button>
           <button className="action-btn nope" aria-label="Nope" onClick={() => {
-            if (feed[0]) handleSwipe(feed[0], 'left');
+            if (deck[0]) handleSwipe(deck[0], 'left');
           }}>
             <Icon name="x" size={28} stroke={2.5} />
           </button>
-          <button className="action-btn boost" aria-label="Boost">
+          <button className="action-btn boost" onClick={handleBoost} aria-label="Boost">
             <Icon name="bolt" size={20} stroke={2} />
           </button>
           <button className="action-btn like" aria-label="Like" onClick={() => {
-            if (feed[0]) handleSwipe(feed[0], 'right');
+            if (deck[0]) handleSwipe(deck[0], 'right');
           }}>
             <Icon name="heart" size={28} stroke={2.5} />
           </button>
           <button className="action-btn small" aria-label="Save" onClick={() => {
-            if (feed[0]) handleSwipe(feed[0], 'right');
+            if (deck[0]) handleSwipe(deck[0], 'right');
           }}>
             <Icon name="bookmark" size={18} />
           </button>
@@ -145,6 +208,16 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenMenu, onOpenM
           onViewMatches={() => { setMatched(null); onOpenMatches && onOpenMatches(); }}
           lang={lang} />
       )}
+
+      {boostToast && <div className="boost-toast">{t('boost_toast')}</div>}
+
+      <FilterDrawer
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        onApply={setFilters}
+        lang={lang}
+        initial={filters}
+      />
     </div>
   );
 }
@@ -222,7 +295,7 @@ function SwipeCard({ deal, stackIndex, isTop, onSwipe, lang }) {
   return (
     <div
       ref={ref}
-      className="card"
+      className={`card ${deal.boosted ? 'is-boosted' : ''}`}
       onMouseDown={onPointerDown}
       onTouchStart={onPointerDown}
       style={{
@@ -292,6 +365,27 @@ function SwipeCard({ deal, stackIndex, isTop, onSwipe, lang }) {
   );
 }
 
+function DeckSkeleton() {
+  return (
+    <div className="deck">
+      {[2, 1, 0].map(i => (
+        <div
+          key={i}
+          className="card deck-skeleton"
+          style={{
+            transform: `translate(0, ${i * 12}px) scale(${1 - i * 0.04})`,
+            zIndex: 10 - i,
+            pointerEvents: 'none',
+          }}>
+          <div className="card-img">
+            <div className="deck-skel-shimmer" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function EmptyDeck({ onRestart, lang }) {
   const t = useT(lang);
   return (
@@ -304,6 +398,27 @@ function EmptyDeck({ onRestart, lang }) {
       <button className="btn btn-primary" onClick={onRestart}>
         <Icon name="refresh" size={16} /> {t('restart')}
       </button>
+    </div>
+  );
+}
+
+function CapHit({ lang, swipes, onUpgrade }) {
+  const t = useT(lang);
+  return (
+    <div className="cap-hit">
+      <div className="cap-hit-icon">
+        <Icon name="bolt" size={32} stroke={2} />
+      </div>
+      <h3>{t('cap_title')}</h3>
+      <p>{t('cap_sub', { n: swipes })}</p>
+      <div className="cap-hit-actions">
+        <button className="btn btn-primary btn-block" onClick={onUpgrade}>
+          <Icon name="sparkles" size={14} stroke={2} /> {t('cap_cta_upgrade')}
+        </button>
+        <button className="btn btn-ghost btn-block" disabled>
+          {t('cap_cta_wait')}
+        </button>
+      </div>
     </div>
   );
 }

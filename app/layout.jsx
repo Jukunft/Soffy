@@ -4,6 +4,15 @@ export const metadata = {
   title: 'Soffy — Swipe to save',
   description: 'Soffy — Swipe to save. Descubre descuentos que te importan.',
   icons: { icon: '/assets/soffy-logo.png', apple: '/assets/soffy-logo.png' },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Soffy',
+  },
+  other: {
+    'mobile-web-app-capable': 'yes',
+    'format-detection': 'telephone=no',
+  },
 };
 
 export const viewport = {
