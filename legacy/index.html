@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#16294a">
+<meta name="description" content="Soffy — Swipe to save. Descubre descuentos que te importan.">
+<title>Soffy — Swipe to save</title>
+<link rel="icon" type="image/png" href="assets/soffy-logo.png">
+<link rel="apple-touch-icon" href="assets/soffy-logo.png">
+<link rel="stylesheet" href="src/styles.css">
+<style>
+  html, body { height: 100%; margin: 0; background: #16294a; overscroll-behavior: none; }
+  #root { min-height: 100vh; min-height: 100dvh; display: flex; }
+  .app-shell { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 480px; margin: 0 auto; min-height: 100vh; min-height: 100dvh; position: relative; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script src="src/data.js"></script>
+<script src="src/api.js"></script>
+<script type="text/babel" src="src/common.jsx"></script>
+<script type="text/babel" src="src/onboarding.jsx"></script>
+<script type="text/babel" src="src/feed.jsx"></script>
+<script type="text/babel" src="src/matches.jsx"></script>
+<script type="text/babel" src="src/app.jsx"></script>
+</body>
+</html>
