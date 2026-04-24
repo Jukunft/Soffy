@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
+import { track, identify, EVENTS } from '@/lib/analytics';
 
 const ZONES = [
   { id: 'cl-scl',  label: { es: 'Santiago',      en: 'Santiago' },      flag: '🇨🇱' },
@@ -30,11 +31,16 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
     setLoading(true);
     try {
       if (mode === 'signup') {
+        track(EVENTS.SIGNUP_START, { zone });
         const { profile } = await SoffyAPI.signup({ email: trimmed, zone });
+        identify(trimmed, { zone });
+        track(EVENTS.SIGNUP_COMPLETE, { zone });
         onSuccess(profile, 'signup');
       } else {
         const { profile } = await SoffyAPI.getProfile();
         if (profile?.email && profile.email.toLowerCase() === trimmed) {
+          identify(trimmed, { zone: profile.zone, plan: profile.plan });
+          track(EVENTS.LOGIN);
           onSuccess(profile, 'login');
         } else {
           setErr('notfound');

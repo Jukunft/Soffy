@@ -1,8 +1,9 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
+import { track, EVENTS } from '@/lib/analytics';
 
 const PLANS = {
   month: { price: '$3.99', period: 'pw_period_month', raw: 3.99 },
@@ -16,6 +17,8 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
   const [activating, setActivating] = useState(false);
   const [success, setSuccess] = useState(false);
 
+  useEffect(() => { track(EVENTS.PAYWALL_VIEW, { reason }); }, [reason]);
+
   const plan = PLANS[billing];
   const monthlyEquiv = billing === 'year'
     ? `$${(PLANS.year.raw / 12).toFixed(2)}/${t('pw_period_month')}`
@@ -23,11 +26,17 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
 
   const activate = () => {
     setActivating(true);
+    track(EVENTS.PAYWALL_ACTIVATE, { billing, reason });
     SoffyAPI.updateProfile({ plan: 'premium', planBilling: billing })
       .then(() => {
         setActivating(false);
         setSuccess(true);
       });
+  };
+
+  const handleClose = () => {
+    track(EVENTS.PAYWALL_DISMISS, { reason });
+    onClose && onClose();
   };
 
   const confetti = useMemo(() => {
@@ -69,7 +78,7 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
     <div className="paywall">
       <div className="paywall-bg-glow" />
 
-      <button className="paywall-close" onClick={onClose} aria-label={t('back')}>
+      <button className="paywall-close" onClick={handleClose} aria-label={t('back')}>
         <Icon name="x" size={20} stroke={2.4} />
       </button>
 
@@ -125,7 +134,7 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
             <>{t('pw_cta_activate')} · {plan.price}/{t(plan.period)}</>
           )}
         </button>
-        <button className="paywall-ghost-btn" onClick={onClose}>
+        <button className="paywall-ghost-btn" onClick={handleClose}>
           {t('pw_cta_continue')}
         </button>
         <p className="paywall-legal">{t('pw_legal')}</p>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
+import { track, EVENTS } from '@/lib/analytics';
 
 const ZONE_LABELS = {
   'cl-scl': { es: 'Santiago, Chile', en: 'Santiago, Chile' },
@@ -19,6 +20,7 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    track(EVENTS.PROFILE_VIEW);
     SoffyAPI.getProfile().then(r => {
       setProfile(r.profile);
       setLoading(false);
@@ -31,11 +33,13 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
   const initial = (profile?.email || '?')[0].toUpperCase();
 
   const switchLang = (l) => {
+    track(EVENTS.LANG_SWITCH, { from: lang, to: l });
     setLang(l);
     SoffyAPI.updateProfile({ lang: l }).catch(() => {});
   };
 
   const handleLogout = () => {
+    track(EVENTS.LOGOUT);
     SoffyAPI._reset();
     onLogout && onLogout();
   };

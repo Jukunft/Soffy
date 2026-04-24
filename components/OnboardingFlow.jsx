@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { CATEGORIES, TASTES, DEALS } from '@/lib/data';
+import { track, EVENTS } from '@/lib/analytics';
 
 export default function OnboardingFlow({ onComplete, onBack, lang, prefs, setPrefs }) {
   const [step, setStep] = useState(1);
@@ -10,8 +11,13 @@ export default function OnboardingFlow({ onComplete, onBack, lang, prefs, setPre
   const TOTAL = 4;
 
   const next = () => {
-    if (step < TOTAL) setStep(step + 1);
-    else onComplete();
+    track(EVENTS.ONBOARDING_STEP, { step, cats: prefs.cats.length, tastes: prefs.tastes.length });
+    if (step < TOTAL) {
+      setStep(step + 1);
+    } else {
+      track(EVENTS.ONBOARDING_DONE, { cats: prefs.cats.length, tastes: prefs.tastes.length, loc: prefs.loc, budget: prefs.budget });
+      onComplete();
+    }
   };
   const prev = () => {
     if (step > 1) setStep(step - 1);

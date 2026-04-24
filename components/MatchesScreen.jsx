@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { CATEGORIES } from '@/lib/data';
 import { SoffyAPI } from '@/lib/api';
+import { track, EVENTS } from '@/lib/analytics';
 
 export default function MatchesScreen({ lang, onBack }) {
   const t = useT(lang);
@@ -16,17 +17,22 @@ export default function MatchesScreen({ lang, onBack }) {
     setLoading(false);
   });
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); track(EVENTS.MATCHES_VIEW); }, []);
   useEffect(() => {
     const id = setInterval(() => setTick(x => x + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
   const useCoupon = (m) => {
-    SoffyAPI.markMatchUsed(m.id).then(load);
+    track(EVENTS.COUPON_VIEW, { dealId: m.dealId, msLeft: m.msLeft });
+    SoffyAPI.markMatchUsed(m.id).then(() => {
+      track(EVENTS.COUPON_USED, { dealId: m.dealId });
+      load();
+    });
     // TODO: abrir WebView/deep link al sitio del partner (SKILL §4)
   };
   const removeMatch = (m) => {
+    track(EVENTS.MATCH_DELETED, { dealId: m.dealId });
     SoffyAPI.deleteMatch(m.id).then(load);
   };
 

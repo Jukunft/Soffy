@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { CATEGORIES, TASTES } from '@/lib/data';
 import { SoffyAPI } from '@/lib/api';
+import { track, EVENTS } from '@/lib/analytics';
 import FilterDrawer, { DEFAULT_FILTERS } from '@/components/FilterDrawer';
 
 export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOpenMatches, onOpenPaywall }) {
@@ -34,8 +35,11 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
       setCapped(!!r.capped);
       setSwipesToday(r.swipesToday || r.cap || 0);
       setLoading(false);
+      if (r.capped) track(EVENTS.CAP_HIT, { swipesToday: r.swipesToday });
     });
   }, [prefs, activeCat, filters]);
+
+  useEffect(() => { track(EVENTS.FEED_VIEW, { cat: activeCat }); }, [activeCat]);
 
   useEffect(() => { loadDeck(); }, [loadDeck]);
 
@@ -55,7 +59,7 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
   }, [prefs, lang, t]);
 
   const handleSwipe = (deal, dir) => {
-    // haptic por dirección
+    track(EVENTS.SWIPE, { dealId: deal.id, dir, affinity: deal.affinity || deal.match, cat: deal.cat });
     if (typeof navigator !== 'undefined' && navigator.vibrate) {
       navigator.vibrate(dir === 'right' ? [12, 30, 12] : 10);
     }
@@ -63,7 +67,9 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
     SoffyAPI.postSwipe({ dealId: deal.id, dir }).then(({ match }) => {
       if (match) {
         setMatchedDeals(prev => [...prev, deal.id]);
+        track(EVENTS.MATCH, { dealId: deal.id, affinity: deal.affinity || deal.match });
         if (deal.match >= 85) {
+          track(EVENTS.MATCH_HIGH, { dealId: deal.id, affinity: deal.match });
           if (navigator.vibrate) navigator.vibrate([30, 50, 30, 50, 30]);
           setMatched(deal);
         }
@@ -74,6 +80,7 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
   const handleRewind = () => {
     SoffyAPI.undoLastSwipe().then(({ undone }) => {
       if (!undone) return;
+      track(EVENTS.UNDO_SWIPE, { dealId: undone.dealId, dir: undone.dir });
       loadDeck();
       if (undone.dir === 'right') {
         setMatchedDeals(m => m.filter(id => id !== undone.dealId));
@@ -105,6 +112,7 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
   const handleBoost = () => {
     SoffyAPI.getBoost({ prefs }).then(({ deal }) => {
       if (!deal) return;
+      track(EVENTS.BOOST_USED, { dealId: deal.id, affinity: deal.affinity });
       setDeck(d => [deal, ...d.filter(x => x.id !== deal.id)]);
       setBoostToast(true);
       if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(25);
@@ -214,7 +222,7 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
       <FilterDrawer
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
-        onApply={setFilters}
+        onApply={(f) => { setFilters(f); track(EVENTS.FILTER_APPLY, f); }}
         lang={lang}
         initial={filters}
       />

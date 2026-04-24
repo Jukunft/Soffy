@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import LandingTracker from '@/components/LandingTracker';
 
 export const metadata = {
   title: 'Soffy — Swipe to save · Descuentos que te importan',
@@ -34,6 +35,7 @@ const STEPS = [
 export default function Landing() {
   return (
     <main className="landing">
+      <LandingTracker />
       {/* HERO */}
       <section className="landing-hero">
         <div className="landing-hero-blobs">
