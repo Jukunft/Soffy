@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { CATEGORIES } from '@/lib/data';
@@ -11,8 +11,14 @@ export default function MatchesScreen({ lang, onBack }) {
   const t = useT(lang);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [, setTick] = useState(0);
   const [toast, setToast] = useState(null);
+  const [pull, setPull] = useState(0);
+  const pullStartY = useRef(null);
+  const bodyRef = useRef(null);
+  const PULL_THRESHOLD = 64;
+  const PULL_MAX = 120;
 
   const flashToast = (msg) => {
     setToast(msg);
@@ -52,6 +58,35 @@ export default function MatchesScreen({ lang, onBack }) {
     });
   };
 
+  // Pull-to-refresh — solo si scrollTop es 0
+  const onTouchStart = (e) => {
+    if (!bodyRef.current || bodyRef.current.scrollTop > 0) return;
+    pullStartY.current = e.touches[0].clientY;
+  };
+  const onTouchMove = (e) => {
+    if (pullStartY.current === null) return;
+    if (bodyRef.current.scrollTop > 0) { pullStartY.current = null; setPull(0); return; }
+    const dy = e.touches[0].clientY - pullStartY.current;
+    if (dy > 0) {
+      setPull(Math.min(PULL_MAX, dy * 0.55));
+    }
+  };
+  const onTouchEnd = () => {
+    if (pullStartY.current === null) { setPull(0); return; }
+    if (pull >= PULL_THRESHOLD) {
+      setRefreshing(true);
+      setPull(PULL_THRESHOLD); // hold indicator anchored mientras refresca
+      if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(12);
+      load().then(() => {
+        setRefreshing(false);
+        setPull(0);
+      });
+    } else {
+      setPull(0);
+    }
+    pullStartY.current = null;
+  };
+
   return (
     <div className="matches">
       <div className="matches-topbar">
@@ -68,11 +103,20 @@ export default function MatchesScreen({ lang, onBack }) {
         </div>
       </div>
 
-      <div className="matches-body">
+      <div
+        className="matches-body"
+        ref={bodyRef}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+        style={{
+          transform: pull > 0 ? `translateY(${pull}px)` : undefined,
+          transition: pullStartY.current === null && !refreshing ? 'transform 280ms cubic-bezier(0.22,1,0.36,1)' : 'none',
+        }}
+      >
+        <PullIndicator pull={pull} threshold={PULL_THRESHOLD} refreshing={refreshing} />
         {loading ? (
-          <div className="matches-empty">
-            <p className="matches-empty-sub">{lang === 'es' ? 'Cargando…' : 'Loading…'}</p>
-          </div>
+          <MatchesSkeleton />
         ) : matches.length === 0 ? (
           <div className="matches-empty">
             <div className="empty-deck-icon">
@@ -153,6 +197,43 @@ function MatchCard({ match, lang, onUse, onShare, onDelete }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+function PullIndicator({ pull, threshold, refreshing }) {
+  const progress = Math.min(1, pull / threshold);
+  const opacity = Math.min(1, pull / 20);
+  const rotate = refreshing ? 'spin' : `${progress * 360}deg`;
+  return (
+    <div
+      className={`ptr-indicator ${refreshing ? 'is-refreshing' : ''}`}
+      style={{
+        opacity,
+        transform: `translateY(${-48 + pull * 0.55}px) rotate(${refreshing ? 0 : progress * 360}deg)`,
+      }}
+      aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="23 4 23 10 17 10"/>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+    </div>
+  );
+}
+
+function MatchesSkeleton() {
+  return (
+    <div className="matches-list">
+      {[0, 1, 2].map(i => (
+        <div key={i} className="match-item match-skeleton">
+          <div className="match-item-thumb match-skel-block" />
+          <div className="match-item-body">
+            <div className="match-skel-line match-skel-line-sm" />
+            <div className="match-skel-line match-skel-line-lg" />
+            <div className="match-skel-line match-skel-line-md" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
