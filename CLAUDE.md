@@ -80,6 +80,9 @@ Topbars y action bar usan `max(X, env(safe-area-inset-*))` — iPhone con notch 
 ### No tocar `legacy/`
 Es el prototipo HTML/CSS/JS pre-migración. Sirve como referencia histórica. Cualquier cambio de UI va en `app/` y `components/`.
 
+### Deals siempre vía `SoffyAPI`, nunca `import DEALS` directo
+Los componentes de UI no pueden importar `DEALS` desde `lib/data.js`. Todo deal llega por `SoffyAPI.getDeck`, `getBoost`, `getMatches`, etc. **Why:** el cutover al backend real de Gonzorro debe ser literalmente 1 línea (`SoffyAPI.BASE_URL = ...`). Si la UI tiene `DEALS` hardcodeado, ese día toca refactor. **How to apply:** antes de aprobar un componente nuevo, hacer `grep "from '@/lib/data'" components/` — debe solo aparecer en `lib/api.js`. `CATEGORIES` y `TASTES` sí pueden importarse (son taxonomía estática, no catálogo).
+
 ## Desarrollo
 
 ```bash
