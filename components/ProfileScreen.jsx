@@ -110,9 +110,9 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
             <span className="profile-row-label" style={{ flex: 1 }}>
               {lang === 'es' ? 'Español' : 'English'}
             </span>
-            <div className="lang-toggle">
-              <button className={lang === 'es' ? 'active' : ''} onClick={() => switchLang('es')}>ES</button>
-              <button className={lang === 'en' ? 'active' : ''} onClick={() => switchLang('en')}>EN</button>
+            <div className="lang-toggle" role="group" aria-label={t('profile_lang_label')}>
+              <button aria-pressed={lang === 'es'} className={lang === 'es' ? 'active' : ''} onClick={() => switchLang('es')}>ES</button>
+              <button aria-pressed={lang === 'en'} className={lang === 'en' ? 'active' : ''} onClick={() => switchLang('en')}>EN</button>
             </div>
           </div>
         </div>
@@ -146,7 +146,9 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
         onClose={() => setZoneOpen(false)}
       />
 
-      {toast && <div className="matches-toast">{toast}</div>}
+      <div className="matches-toast-region" role="status" aria-live="polite" aria-atomic="true">
+        {toast && <div className="matches-toast">{toast}</div>}
+      </div>
     </div>
   );
 }

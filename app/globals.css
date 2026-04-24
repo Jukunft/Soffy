@@ -78,6 +78,54 @@ html, body {
   touch-action: manipulation;
 }
 
+/* A11y — focus-visible ring global (no aparece en :focus de click, solo teclado) */
+:focus { outline: none; }
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+.chip:focus-visible,
+.cat-tile:focus-visible,
+.radio-item:focus-visible,
+.auth-tab:focus-visible,
+.profile-row-btn:focus-visible,
+.zone-item:focus-visible,
+.paywall-billing-opt:focus-visible {
+  outline-offset: 3px;
+}
+
+/* A11y — respeta prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .welcome-logo,
+  .landing-brand,
+  .welcome-bg-blobs .blob,
+  .landing-hero-blobs .blob,
+  .confetti-piece { animation: none !important; }
+}
+
+/* Screen reader only — contenido que solo leen lectores de pantalla */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
+
 #root {
   min-height: 100vh;
   min-height: 100dvh;

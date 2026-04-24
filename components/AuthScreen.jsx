@@ -65,13 +65,17 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
         <img src="/assets/soffy-logo.png" alt="Soffy" className="auth-logo" />
       </div>
 
-      <div className="auth-tabs">
+      <div className="auth-tabs" role="tablist" aria-label={t('auth_tab_signup') + ' / ' + t('auth_tab_login')}>
         <button
+          role="tab"
+          aria-selected={isSignup}
           className={`auth-tab ${isSignup ? 'active' : ''}`}
           onClick={() => { setMode('signup'); setErr(null); }}>
           {t('auth_tab_signup')}
         </button>
         <button
+          role="tab"
+          aria-selected={!isSignup}
           className={`auth-tab ${!isSignup ? 'active' : ''}`}
           onClick={() => { setMode('login'); setErr(null); }}>
           {t('auth_tab_login')}
@@ -118,7 +122,7 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
         )}
 
         {err && (
-          <div className="auth-error">
+          <div className="auth-error" role="alert" aria-live="polite">
             {err === 'email' ? t('auth_err_email') : t('auth_err_notfound')}
           </div>
         )}

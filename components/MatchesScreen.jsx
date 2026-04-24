@@ -150,7 +150,9 @@ export default function MatchesScreen({ lang, onBack }) {
           </div>
         )}
       </div>
-      {toast && <div className="matches-toast">{toast}</div>}
+      <div className="matches-toast-region" role="status" aria-live="polite" aria-atomic="true">
+        {toast && <div className="matches-toast">{toast}</div>}
+      </div>
     </div>
   );
 }

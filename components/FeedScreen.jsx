@@ -218,7 +218,9 @@ export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOp
           lang={lang} />
       )}
 
-      {boostToast && <div className="boost-toast">{t('boost_toast')}</div>}
+      <div role="status" aria-live="polite" aria-atomic="true">
+        {boostToast && <div className="boost-toast">{t('boost_toast')}</div>}
+      </div>
 
       <FilterDrawer
         open={filterOpen}
@@ -458,7 +460,7 @@ function MatchOverlay({ deal, onClose, onViewMatches, lang }) {
           }} />
         ))}
       </div>
-      <h1 className="match-title">{lang === 'es' ? '¡MATCH!' : "IT'S A MATCH!"}</h1>
+      <h1 className="match-title" role="alert" aria-live="assertive">{lang === 'es' ? '¡MATCH!' : "IT'S A MATCH!"}</h1>
       <p className="match-sub">{t('match_sub')}</p>
       <div className="match-card">
         <div style={{

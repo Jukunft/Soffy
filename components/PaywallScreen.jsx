@@ -103,6 +103,7 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
 
       <div className="paywall-billing">
         <button
+          aria-pressed={billing === 'year'}
           className={`paywall-billing-opt ${billing === 'year' ? 'selected' : ''}`}
           onClick={() => setBilling('year')}>
           <div className="paywall-billing-label">
@@ -115,6 +116,7 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
           <div className="paywall-billing-hint">{monthlyEquiv && billing === 'year' ? monthlyEquiv : ' '}</div>
         </button>
         <button
+          aria-pressed={billing === 'month'}
           className={`paywall-billing-opt ${billing === 'month' ? 'selected' : ''}`}
           onClick={() => setBilling('month')}>
           <div className="paywall-billing-label">{t('pw_billed_month')}</div>

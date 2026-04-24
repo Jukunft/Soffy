@@ -135,9 +135,9 @@ export default function Home() {
 
         {screen === 'welcome' && (
           <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}>
-            <div className="lang-toggle">
-              <button className={lang === 'es' ? 'active' : ''} onClick={() => setLang('es')}>ES</button>
-              <button className={lang === 'en' ? 'active' : ''} onClick={() => setLang('en')}>EN</button>
+            <div className="lang-toggle" role="group" aria-label="Language">
+              <button aria-pressed={lang === 'es'} className={lang === 'es' ? 'active' : ''} onClick={() => setLang('es')}>ES</button>
+              <button aria-pressed={lang === 'en'} className={lang === 'en' ? 'active' : ''} onClick={() => setLang('en')}>EN</button>
             </div>
           </div>
         )}
