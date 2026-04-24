@@ -5,10 +5,11 @@ import { useT } from '@/lib/i18n';
 import { CATEGORIES, TASTES, DEALS } from '@/lib/data';
 import { track, EVENTS } from '@/lib/analytics';
 
-export default function OnboardingFlow({ onComplete, onBack, lang, prefs, setPrefs }) {
+export default function OnboardingFlow({ onComplete, onBack, lang, prefs, setPrefs, mode = 'signup' }) {
   const [step, setStep] = useState(1);
   const t = useT(lang);
   const TOTAL = 4;
+  const isEdit = mode === 'edit';
 
   const next = () => {
     track(EVENTS.ONBOARDING_STEP, { step, cats: prefs.cats.length, tastes: prefs.tastes.length });
@@ -55,7 +56,9 @@ export default function OnboardingFlow({ onComplete, onBack, lang, prefs, setPre
           onClick={next}
           disabled={!canContinue()}
           style={{ opacity: canContinue() ? 1 : 0.4, cursor: canContinue() ? 'pointer' : 'not-allowed' }}>
-          {step === TOTAL ? t('finish') : t('continue')} <Icon name="arrowRight" size={16} />
+          {step === TOTAL
+            ? (isEdit ? t('save_prefs') : t('finish'))
+            : t('continue')} <Icon name="arrowRight" size={16} />
         </button>
       </div>
     </div>

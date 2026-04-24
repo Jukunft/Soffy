@@ -1638,6 +1638,63 @@ body {
   border-bottom-color: var(--accent);
 }
 
+/* ========= Zone drawer ========= */
+.zone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.zone-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: var(--font-body);
+  color: var(--fg);
+  transition: all 160ms var(--ease);
+  text-align: left;
+  width: 100%;
+}
+.zone-item:hover {
+  border-color: var(--border-2);
+  background: var(--surface-2);
+}
+.zone-item.selected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  color: var(--accent-bright);
+}
+.zone-flag { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.zone-label-wrap { flex: 1; min-width: 0; }
+.zone-label {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--fg);
+  line-height: 1.1;
+}
+.zone-country {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+.zone-hint {
+  font-size: 12px;
+  color: var(--fg-muted);
+  line-height: 1.5;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px dashed var(--border-2);
+  border-radius: var(--r-md);
+  margin: 10px 0 0;
+}
+
 /* ========= Filter drawer (bottom sheet) ========= */
 .drawer-backdrop {
   position: absolute;
@@ -2383,6 +2440,17 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   color: var(--fg-muted);
+}
+.profile-row-btn {
+  width: 100%;
+  font-family: var(--font-body);
+  cursor: pointer;
+  text-align: left;
+  transition: all 160ms var(--ease);
+}
+.profile-row-btn:hover {
+  border-color: var(--border-2);
+  background: var(--surface-2);
 }
 .profile-row-label {
   color: var(--fg);

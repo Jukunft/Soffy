@@ -7,6 +7,7 @@ import FeedScreen from '@/components/FeedScreen';
 import MatchesScreen from '@/components/MatchesScreen';
 import ProfileScreen from '@/components/ProfileScreen';
 import PaywallScreen from '@/components/PaywallScreen';
+import { SoffyAPI } from '@/lib/api';
 
 const DEFAULT_PREFS = { cats: [], tastes: [], loc: 'cdmx', budget: 'med' };
 
@@ -14,6 +15,7 @@ export default function Home() {
   const [hydrated, setHydrated] = useState(false);
   const [screen, setScreen] = useState('welcome');
   const [authMode, setAuthMode] = useState('signup');
+  const [onboardingMode, setOnboardingMode] = useState('signup');
   const [paywallReason, setPaywallReason] = useState(null);
   const [lang, setLang] = useState('es');
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
@@ -46,7 +48,8 @@ export default function Home() {
   };
 
   const handleAuthSuccess = (profile, mode) => {
-    // login con prefs guardadas → directo al feed. Resto → onboarding.
+    // login con prefs guardadas → directo al feed. Resto → onboarding signup.
+    setOnboardingMode('signup');
     if (mode === 'login' && profile?.prefs?.cats?.length >= 3) {
       setPrefs(profile.prefs);
       setScreen('feed');
@@ -81,8 +84,13 @@ export default function Home() {
           )}
           {screen === 'onboarding' && (
             <OnboardingFlow
-              onComplete={() => setScreen('feed')}
-              onBack={() => setScreen('welcome')}
+              mode={onboardingMode}
+              onComplete={() => {
+                // Persistir prefs en el profile (edit) o signup (primer flow)
+                SoffyAPI.updateProfile({ prefs }).catch(() => {});
+                setScreen(onboardingMode === 'edit' ? 'profile' : 'feed');
+              }}
+              onBack={() => setScreen(onboardingMode === 'edit' ? 'profile' : 'welcome')}
               lang={lang}
               prefs={prefs}
               setPrefs={setPrefs}
@@ -110,7 +118,7 @@ export default function Home() {
               setLang={setLang}
               prefs={prefs}
               onBack={() => setScreen('feed')}
-              onEditPrefs={() => setScreen('onboarding')}
+              onEditPrefs={() => { setOnboardingMode('edit'); setScreen('onboarding'); }}
               onOpenPaywall={() => openPaywall()}
               onLogout={resetAll}
             />

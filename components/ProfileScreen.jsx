@@ -4,20 +4,17 @@ import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
 import { track, EVENTS } from '@/lib/analytics';
+import ZoneDrawer, { ZONES } from '@/components/ZoneDrawer';
 
-const ZONE_LABELS = {
-  'cl-scl': { es: 'Santiago, Chile', en: 'Santiago, Chile' },
-  'mx-cdmx': { es: 'Ciudad de México', en: 'Mexico City' },
-  'mx-gdl': { es: 'Guadalajara', en: 'Guadalajara' },
-  'mx-mty': { es: 'Monterrey', en: 'Monterrey' },
-  'ar-bue': { es: 'Buenos Aires', en: 'Buenos Aires' },
-  'all': { es: 'Toda LATAM', en: 'All LATAM' },
-};
+const ZONE_BY_ID = Object.fromEntries(ZONES.map(z => [z.id, z]));
 
 export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPrefs, onOpenPaywall, onLogout }) {
   const t = useT(lang);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [zoneOpen, setZoneOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const flashToast = (msg) => { setToast(msg); setTimeout(() => setToast(null), 1900); };
 
   useEffect(() => {
     track(EVENTS.PROFILE_VIEW);
@@ -29,8 +26,18 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
 
   const isPremium = profile?.plan === 'premium';
   const zone = profile?.zone || 'cl-scl';
-  const zoneLabel = ZONE_LABELS[zone]?.[lang] || zone;
+  const zoneInfo = ZONE_BY_ID[zone];
+  const zoneLabel = zoneInfo ? `${zoneInfo.flag} ${zoneInfo.label[lang]}` : zone;
   const initial = (profile?.email || '?')[0].toUpperCase();
+
+  const changeZone = (newZone) => {
+    if (newZone === zone) return;
+    track(EVENTS.PROFILE_VIEW, { action: 'zone_change', from: zone, to: newZone });
+    SoffyAPI.updateProfile({ zone: newZone }).then(r => {
+      setProfile(r.profile);
+      flashToast(t('zone_saved'));
+    });
+  };
 
   const switchLang = (l) => {
     track(EVENTS.LANG_SWITCH, { from: lang, to: l });
@@ -90,11 +97,11 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
 
         <div className="profile-section">
           <p className="pref-label">{t('profile_zone_label')}</p>
-          <div className="profile-row">
+          <button className="profile-row profile-row-btn" onClick={() => setZoneOpen(true)}>
             <Icon name="mapPin" size={16} />
             <span className="profile-row-label">{zoneLabel}</span>
-            <span className="profile-row-meta">{zone.toUpperCase()}</span>
-          </div>
+            <Icon name="chevronRight" size={16} />
+          </button>
         </div>
 
         <div className="profile-section">
@@ -129,6 +136,17 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
           </button>
         </div>
       </div>
+
+      <ZoneDrawer
+        open={zoneOpen}
+        current={zone}
+        lang={lang}
+        premiumUnlocked={isPremium}
+        onPick={changeZone}
+        onClose={() => setZoneOpen(false)}
+      />
+
+      {toast && <div className="matches-toast">{toast}</div>}
     </div>
   );
 }
