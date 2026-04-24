@@ -5,6 +5,7 @@ import { useT } from '@/lib/i18n';
 import { CATEGORIES, TASTES } from '@/lib/data';
 import { SoffyAPI } from '@/lib/api';
 import { track, EVENTS } from '@/lib/analytics';
+import { shareDeal } from '@/lib/share';
 import FilterDrawer, { DEFAULT_FILTERS } from '@/components/FilterDrawer';
 
 export default function FeedScreen({ prefs, lang, onRestart, onOpenProfile, onOpenMatches, onOpenPaywall }) {
@@ -434,6 +435,7 @@ function CapHit({ lang, swipes, onUpgrade }) {
 function MatchOverlay({ deal, onClose, onViewMatches, lang }) {
   const t = useT(lang);
   const cat = CATEGORIES.find(c => c.id === deal.cat);
+  const handleShare = () => shareDeal({ deal, lang });
   const confetti = useMemo(() => {
     const colors = ['#ff6b1f', '#1d4ed8', '#22c55e', '#fbbf24', '#fff'];
     return Array.from({ length: 40 }, () => ({
@@ -490,6 +492,9 @@ function MatchOverlay({ deal, onClose, onViewMatches, lang }) {
           {t('view_coupon')}
         </button>
       </div>
+      <button className="match-share-btn" onClick={handleShare} aria-label={t('share')}>
+        <Icon name="arrowRight" size={14} stroke={2.2} /> {t('share')}
+      </button>
     </div>
   );
 }

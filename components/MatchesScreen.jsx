@@ -5,12 +5,19 @@ import { useT } from '@/lib/i18n';
 import { CATEGORIES } from '@/lib/data';
 import { SoffyAPI } from '@/lib/api';
 import { track, EVENTS } from '@/lib/analytics';
+import { shareDeal, copyToClipboard, couponCode } from '@/lib/share';
 
 export default function MatchesScreen({ lang, onBack }) {
   const t = useT(lang);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [, setTick] = useState(0);
+  const [toast, setToast] = useState(null);
+
+  const flashToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  };
 
   const load = () => SoffyAPI.getMatches().then(r => {
     setMatches(r.matches);
@@ -25,15 +32,24 @@ export default function MatchesScreen({ lang, onBack }) {
 
   const useCoupon = (m) => {
     track(EVENTS.COUPON_VIEW, { dealId: m.dealId, msLeft: m.msLeft });
-    SoffyAPI.markMatchUsed(m.id).then(() => {
-      track(EVENTS.COUPON_USED, { dealId: m.dealId });
-      load();
+    const code = couponCode(m.deal);
+    copyToClipboard(code).then(ok => {
+      if (ok) flashToast(`${t('code_copied')}: ${code}`);
+      SoffyAPI.markMatchUsed(m.id).then(() => {
+        track(EVENTS.COUPON_USED, { dealId: m.dealId, code });
+        load();
+      });
     });
-    // TODO: abrir WebView/deep link al sitio del partner (SKILL §4)
+    // TODO: abrir deep link al partner cuando BE devuelva URL real
   };
   const removeMatch = (m) => {
     track(EVENTS.MATCH_DELETED, { dealId: m.dealId });
     SoffyAPI.deleteMatch(m.id).then(load);
+  };
+  const shareMatch = (m) => {
+    shareDeal({ deal: m.deal, lang }).then(r => {
+      if (r?.method === 'clipboard') flashToast(t('share_toast_copied'));
+    });
   };
 
   return (
@@ -83,17 +99,19 @@ export default function MatchesScreen({ lang, onBack }) {
                 match={m}
                 lang={lang}
                 onUse={() => useCoupon(m)}
+                onShare={() => shareMatch(m)}
                 onDelete={() => removeMatch(m)}
               />
             ))}
           </div>
         )}
       </div>
+      {toast && <div className="matches-toast">{toast}</div>}
     </div>
   );
 }
 
-function MatchCard({ match, lang, onUse, onDelete }) {
+function MatchCard({ match, lang, onUse, onShare, onDelete }) {
   const { deal, msLeft, used } = match;
   const cat = CATEGORIES.find(c => c.id === deal.cat);
   const urgent = msLeft < 3 * 60 * 60 * 1000;
@@ -123,6 +141,9 @@ function MatchCard({ match, lang, onUse, onDelete }) {
         <div className="match-item-actions">
           <button className="btn btn-ghost match-btn-sm" onClick={onDelete} aria-label="Remove">
             <Icon name="x" size={16} />
+          </button>
+          <button className="btn btn-ghost match-btn-sm" onClick={onShare} aria-label="Share">
+            <Icon name="arrowRight" size={16} stroke={2} />
           </button>
           <button className="btn btn-primary match-btn-use" onClick={onUse} disabled={used}>
             {used
