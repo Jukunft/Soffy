@@ -8,3 +8,9 @@ out/
 
 # Claude Design handoff bundle — no aporta al repo
 design/
+
+.vercel
+
+# Claude Code — settings compartidos (settings.json) SÍ se trackean.
+# settings.local.json es por-dev (overrides personales) → ignorar.
+.claude/settings.local.json
