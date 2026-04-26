@@ -3,7 +3,7 @@ export default function manifest() {
     name: 'Soffy — Swipe to save',
     short_name: 'Soffy',
     description: 'Descuentos curados por IA en formato swipe. Matches con timer 24h en toda LATAM.',
-    start_url: '/app',
+    start_url: '/',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
@@ -36,7 +36,7 @@ export default function manifest() {
         name: 'Mis matches',
         short_name: 'Matches',
         description: 'Cupones activos con countdown 24h',
-        url: '/app',
+        url: '/',
       },
     ],
   };
