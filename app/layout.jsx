@@ -2,7 +2,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'Soffy — Swipe to save',
-  description: 'Soffy — Swipe to save. Descubre descuentos que te importan.',
+  description: 'Soffy — Swipe to save. Descubre descuentos que te importan. Matches con timer 24h en LATAM.',
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
