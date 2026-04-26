@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import LandingTracker from '@/components/LandingTracker';
+import LandingCTAs from '@/components/LandingCTAs';
 
 export const metadata = {
   title: 'Soffy — Swipe to save · Descuentos que te importan',
@@ -45,7 +46,7 @@ export default function Landing() {
 
         <div className="landing-hero-content">
           <img src="/assets/soffy-brand.png" alt="Soffy" className="landing-brand" />
-          <p className="welcome-tagline"><span>SWIPE TO SAVE</span></p>
+          <p className="welcome-tagline"><span>DESLIZA PARA AHORRAR</span></p>
 
           <h1 className="display display-xl landing-h1">
             Desliza. <span className="accent">Ahorra.</span> Repite.
@@ -55,18 +56,7 @@ export default function Landing() {
             desliza a la derecha los que amas, ignora el resto.
           </p>
 
-          <div className="landing-cta-row">
-            <Link href="/app" className="btn btn-primary btn-lg btn-block">
-              Empezar gratis →
-            </Link>
-            <Link href="/app" className="btn btn-ghost btn-block">
-              Ya tengo cuenta
-            </Link>
-          </div>
-
-          <p className="landing-microcopy">
-            Gratis. Sin tarjeta. 2 minutos.
-          </p>
+          <LandingCTAs />
         </div>
       </section>
 

@@ -13,7 +13,7 @@ export default function WelcomeScreen({ onStart, onLogin, lang }) {
 
       <div className="welcome-logo-wrap">
         <img src="/assets/soffy-brand.png" alt="Soffy" className="welcome-logo" />
-        <p className="welcome-tagline"><span>{t('welcome_tagline')}</span></p>
+        <p className="welcome-tagline" aria-label={t('welcome_tagline')}><span>{t('welcome_tagline')}</span></p>
       </div>
 
       <div style={{ position: 'relative' }}>

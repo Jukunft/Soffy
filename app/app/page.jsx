@@ -20,7 +20,7 @@ export default function Home() {
   const [lang, setLang] = useState('es');
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
 
-  // Rehidratar desde localStorage solo en cliente (SSR-safe)
+  // Rehidratar desde localStorage solo en cliente (SSR-safe) + leer query params
   useEffect(() => {
     try {
       const s = localStorage.getItem('soffy_screen');
@@ -29,6 +29,28 @@ export default function Home() {
       if (s) setScreen(s);
       if (l) setLang(l);
       if (p) setPrefs(JSON.parse(p));
+
+      // shortcuts desde landing: ?go=feed | ?mode=signup | ?mode=login
+      const params = new URLSearchParams(window.location.search);
+      const go = params.get('go');
+      const mode = params.get('mode');
+      const profileRaw = localStorage.getItem('soffy_api_profile');
+      const hasSession = !!profileRaw;
+
+      if (go === 'feed' && hasSession) {
+        setScreen('feed');
+      } else if (mode === 'signup') {
+        setAuthMode('signup');
+        setScreen('auth');
+      } else if (mode === 'login') {
+        setAuthMode('login');
+        setScreen('auth');
+      }
+
+      // limpia los params para que recargas no re-disparen
+      if (go || mode) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     } catch {}
     setHydrated(true);
   }, []);
