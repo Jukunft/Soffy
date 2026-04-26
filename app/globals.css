@@ -1743,6 +1743,154 @@ body {
   border-bottom-color: var(--accent);
 }
 
+/* ========= Google account picker (mock) ========= */
+.goog-modal {
+  background: #fff;
+  color: #202124;
+  border-radius: 14px;
+  padding: 28px 28px 20px;
+  margin: auto;
+  max-width: 380px;
+  width: calc(100% - 24px);
+  font-family: 'Roboto', 'Google Sans', -apple-system, sans-serif;
+  box-shadow: 0 24px 60px -10px rgba(0,0,0,0.45);
+  animation: drawerUp 280ms var(--ease);
+}
+.drawer-backdrop:has(.goog-modal) { align-items: center; }
+
+.goog-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+.goog-host {
+  font-size: 13px;
+  color: #5f6368;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+.goog-title {
+  font-size: 22px;
+  font-weight: 400;
+  color: #202124;
+  margin: 0 0 4px;
+  letter-spacing: -0.005em;
+}
+.goog-sub {
+  font-size: 13px;
+  color: #5f6368;
+  margin: 0 0 18px;
+}
+
+.goog-account-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  border-top: 1px solid #dadce0;
+}
+.goog-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  border: none;
+  border-bottom: 1px solid #dadce0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.goog-account:hover { background: #f8f9fa; }
+.goog-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #1a73e8;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.goog-account-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.goog-account-name {
+  font-size: 14px;
+  color: #202124;
+  font-weight: 500;
+}
+.goog-account-email {
+  font-size: 12px;
+  color: #5f6368;
+}
+
+.goog-form { display: flex; flex-direction: column; gap: 16px; }
+.goog-field { display: flex; flex-direction: column; gap: 4px; }
+.goog-label {
+  font-size: 12px;
+  color: #5f6368;
+  font-weight: 500;
+}
+.goog-input {
+  padding: 13px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  color: #202124;
+  outline: none;
+  transition: border-color 160ms;
+}
+.goog-input:focus {
+  border: 2px solid #1a73e8;
+  padding: 12px 13px;
+}
+.goog-input.has-error { border-color: #d93025; }
+.goog-err {
+  font-size: 12px;
+  color: #d93025;
+  margin-top: 2px;
+}
+
+.goog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.goog-btn-secondary,
+.goog-btn-primary {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: none;
+}
+.goog-btn-secondary {
+  background: transparent;
+  color: #1a73e8;
+}
+.goog-btn-secondary:hover { background: #e8f0fe; }
+.goog-btn-primary {
+  background: #1a73e8;
+  color: #fff;
+}
+.goog-btn-primary:hover { background: #1765cc; }
+
+.goog-disclaimer {
+  font-size: 11px;
+  color: #80868b;
+  text-align: center;
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #dadce0;
+  font-style: italic;
+}
+
 /* ========= Zone drawer ========= */
 .zone-list {
   display: flex;

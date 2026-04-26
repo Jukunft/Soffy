@@ -4,6 +4,7 @@ import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
 import { track, identify, EVENTS } from '@/lib/analytics';
+import GoogleAccountPicker from '@/components/GoogleAccountPicker';
 
 const ZONES = [
   { id: 'cl-scl',  label: { es: 'Santiago',      en: 'Santiago' },      flag: '🇨🇱' },
@@ -17,12 +18,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+]?[0-9\s-]{8,}$/;
 const MIN_PASS = 6;
 
-// Mock OAuth: futuro -> Supabase Auth con provider Google
-function mockGoogleAccount() {
-  const id = Math.random().toString(36).slice(2, 8);
-  return { email: `user.${id}@gmail.com`, name: `User ${id}` };
-}
-
 export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, onBack }) {
   const t = useT(lang);
   const [mode, setMode] = useState(initialMode);
@@ -33,6 +28,7 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
   const [zone, setZone] = useState('cl-scl');
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [googleOpen, setGoogleOpen] = useState(false);
 
   const isSignup = mode === 'signup';
 
@@ -42,12 +38,16 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
     onSuccess(profile, signupOrLogin);
   };
 
-  const submitGoogle = async () => {
+  const openGooglePicker = () => {
     setErr(null);
+    setGoogleOpen(true);
+  };
+
+  const submitGoogleWith = async (gmail) => {
+    setGoogleOpen(false);
     setLoading(true);
     track(EVENTS.SIGNUP_START, { method: 'google', zone });
     try {
-      const { email: gmail } = mockGoogleAccount();
       const { profile } = await SoffyAPI.signup({ email: gmail, zone, method: 'google' });
       finishAuth(profile, isSignup ? 'signup' : 'login', gmail);
     } finally { setLoading(false); }
@@ -136,11 +136,17 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
       <button
         type="button"
         className="btn auth-google-btn btn-block"
-        onClick={submitGoogle}
+        onClick={openGooglePicker}
         disabled={loading}>
         <GoogleIcon />
         {t('auth_method_google')}
       </button>
+
+      <GoogleAccountPicker
+        open={googleOpen}
+        onPick={submitGoogleWith}
+        onClose={() => setGoogleOpen(false)}
+      />
 
       <div className="auth-divider"><span>{t('auth_or')}</span></div>
 
