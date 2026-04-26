@@ -3,15 +3,23 @@ import { useEffect, useState } from 'react';
 import { SoffyAPI } from '@/lib/api';
 
 /**
- * Renderiza el botón correcto según si el user ya tiene sesión local:
- *  - sí → "Entrar" → /app?go=feed (skip welcome)
- *  - no → "Registrarte" → /app?mode=signup (auth screen)
+ * 3 estados según localStorage:
+ *  - registrado + onboarding hecho → "Entrar" → directo al feed
+ *  - registrado a medio onboarding   → "Continuar registro" → onboarding
+ *  - sin sesión                       → "Registrarte" → auth signup
  */
 export default function LandingCTAs() {
-  const [state, setState] = useState({ ready: false, hasSession: false });
+  const [state, setState] = useState({ ready: false, status: 'new' });
 
   useEffect(() => {
-    setState({ ready: true, hasSession: SoffyAPI.hasSession() });
+    let status = 'new';
+    if (SoffyAPI.hasSession()) {
+      try {
+        const prefs = JSON.parse(localStorage.getItem('soffy_prefs') || '{}');
+        status = (prefs.cats?.length || 0) >= 3 ? 'returning' : 'midway';
+      } catch { status = 'midway'; }
+    }
+    setState({ ready: true, status });
   }, []);
 
   // Render pre-hidratación: muestra "Registrarte" (caso por defecto first-time visitor)
@@ -28,7 +36,7 @@ export default function LandingCTAs() {
     );
   }
 
-  if (state.hasSession) {
+  if (state.status === 'returning') {
     return (
       <>
         <div className="landing-cta-row">
@@ -40,6 +48,22 @@ export default function LandingCTAs() {
           </a>
         </div>
         <p className="landing-microcopy">Tu cuenta está lista. Volvé a swipear.</p>
+      </>
+    );
+  }
+
+  if (state.status === 'midway') {
+    return (
+      <>
+        <div className="landing-cta-row">
+          <a className="btn btn-primary btn-lg btn-block" href="/app">
+            Continuar registro →
+          </a>
+          <a className="btn btn-ghost btn-block" href="/app?mode=signup">
+            Empezar de cero
+          </a>
+        </div>
+        <p className="landing-microcopy">Te falta elegir tus gustos para arrancar.</p>
       </>
     );
   }
