@@ -26,7 +26,6 @@ export default function WelcomeScreen({ onStart, onLogin, lang }) {
           <button className="btn btn-primary btn-lg btn-block" onClick={onStart}>
             {t('get_started')} <Icon name="arrowRight" size={18} />
           </button>
-          <button className="btn btn-ghost btn-block" onClick={onLogin}>{t('already_account')}</button>
         </div>
       </div>
     </div>

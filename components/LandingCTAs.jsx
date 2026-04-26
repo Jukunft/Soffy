@@ -46,9 +46,6 @@ export default function LandingCTAs() {
         <a className="btn btn-primary btn-lg btn-block" href="/app?mode=signup">
           Registrarte →
         </a>
-        <a className="btn btn-ghost btn-block" href="/app?mode=login">
-          Ya tengo cuenta
-        </a>
       </div>
       <p className="landing-microcopy">Gratis. Sin tarjeta. 2 minutos.</p>
     </>
