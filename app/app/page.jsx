@@ -21,18 +21,28 @@ export default function Home() {
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
 
   // Auto-routing al montar /app (no pasamos por welcome).
-  // Decisión basada en session + prefs + query params, no en último screen guardado.
   useEffect(() => {
     try {
+      const params = new URLSearchParams(window.location.search);
+      const go = params.get('go');
+      const mode = params.get('mode');
+
+      // PWA con manifest viejo cacheado todavía apunta a /app — redirect a landing
+      // si no hay intent explícito (?go o ?mode). La landing decide Entrar/Registrarte.
+      const isStandalone =
+        window.matchMedia?.('(display-mode: standalone)').matches ||
+        window.navigator.standalone === true;
+      if (isStandalone && !go && !mode) {
+        window.location.replace('/');
+        return;
+      }
+
       const l = localStorage.getItem('soffy_lang');
       const p = localStorage.getItem('soffy_prefs');
       if (l) setLang(l);
       const parsedPrefs = p ? JSON.parse(p) : null;
       if (parsedPrefs) setPrefs(parsedPrefs);
 
-      const params = new URLSearchParams(window.location.search);
-      const go = params.get('go');
-      const mode = params.get('mode');
       const profileRaw = localStorage.getItem('soffy_api_profile');
       const hasSession = !!profileRaw;
       const hasPrefs = (parsedPrefs?.cats?.length || 0) >= 3;
@@ -49,7 +59,6 @@ export default function Home() {
       else if (hasSession)             setScreen('onboarding');
       else                          { setAuthMode('signup'); setScreen('auth'); }
 
-      // limpia query para que un reload no re-trigger
       if (go || mode) {
         window.history.replaceState({}, '', window.location.pathname);
       }
