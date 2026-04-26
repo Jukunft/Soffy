@@ -14,13 +14,17 @@ export default function LandingCTAs() {
     setState({ ready: true, hasSession: SoffyAPI.hasSession() });
   }, []);
 
-  // Render server-side / pre-hydration: placeholder neutro para evitar layout shift
+  // Render pre-hidratación: muestra "Registrarte" (caso por defecto first-time visitor)
   if (!state.ready) {
     return (
-      <div className="landing-cta-row">
-        <a className="btn btn-primary btn-lg btn-block" href="/app">Empezar →</a>
-        <span className="landing-microcopy" style={{ visibility: 'hidden' }}>·</span>
-      </div>
+      <>
+        <div className="landing-cta-row">
+          <a className="btn btn-primary btn-lg btn-block" href="/app?mode=signup">
+            Registrarte →
+          </a>
+        </div>
+        <p className="landing-microcopy">Gratis. Sin tarjeta. 2 minutos.</p>
+      </>
     );
   }
 

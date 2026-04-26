@@ -20,34 +20,36 @@ export default function Home() {
   const [lang, setLang] = useState('es');
   const [prefs, setPrefs] = useState(DEFAULT_PREFS);
 
-  // Rehidratar desde localStorage solo en cliente (SSR-safe) + leer query params
+  // Auto-routing al montar /app (no pasamos por welcome).
+  // Decisión basada en session + prefs + query params, no en último screen guardado.
   useEffect(() => {
     try {
-      const s = localStorage.getItem('soffy_screen');
       const l = localStorage.getItem('soffy_lang');
       const p = localStorage.getItem('soffy_prefs');
-      if (s) setScreen(s);
       if (l) setLang(l);
-      if (p) setPrefs(JSON.parse(p));
+      const parsedPrefs = p ? JSON.parse(p) : null;
+      if (parsedPrefs) setPrefs(parsedPrefs);
 
-      // shortcuts desde landing: ?go=feed | ?mode=signup | ?mode=login
       const params = new URLSearchParams(window.location.search);
       const go = params.get('go');
       const mode = params.get('mode');
       const profileRaw = localStorage.getItem('soffy_api_profile');
       const hasSession = !!profileRaw;
+      const hasPrefs = (parsedPrefs?.cats?.length || 0) >= 3;
 
-      if (go === 'feed' && hasSession) {
-        setScreen('feed');
-      } else if (mode === 'signup') {
-        setAuthMode('signup');
-        setScreen('auth');
-      } else if (mode === 'login') {
-        setAuthMode('login');
-        setScreen('auth');
-      }
+      // Routing matrix:
+      //  ?mode=login  → auth login (cambiar de cuenta)
+      //  ?mode=signup → auth signup
+      //  registered + prefs done → feed (directo)
+      //  registered, sin prefs → onboarding
+      //  no session → auth signup
+      if (mode === 'login')         { setAuthMode('login');  setScreen('auth'); }
+      else if (mode === 'signup')   { setAuthMode('signup'); setScreen('auth'); }
+      else if (hasSession && hasPrefs) setScreen('feed');
+      else if (hasSession)             setScreen('onboarding');
+      else                          { setAuthMode('signup'); setScreen('auth'); }
 
-      // limpia los params para que recargas no re-disparen
+      // limpia query para que un reload no re-trigger
       if (go || mode) {
         window.history.replaceState({}, '', window.location.pathname);
       }
@@ -55,13 +57,15 @@ export default function Home() {
     setHydrated(true);
   }, []);
 
-  useEffect(() => { if (hydrated) localStorage.setItem('soffy_screen', screen); }, [screen, hydrated]);
+  // soffy_screen ya no se persiste — el routing se decide por session+prefs en el useEffect inicial
   useEffect(() => { if (hydrated) localStorage.setItem('soffy_lang', lang); }, [lang, hydrated]);
   useEffect(() => { if (hydrated) localStorage.setItem('soffy_prefs', JSON.stringify(prefs)); }, [prefs, hydrated]);
 
   const resetAll = () => {
     setPrefs(DEFAULT_PREFS);
-    setScreen('welcome');
+    try { localStorage.removeItem('soffy_screen'); } catch {}
+    setAuthMode('signup');
+    setScreen('auth');
   };
 
   const startAuth = (mode) => {
@@ -89,19 +93,16 @@ export default function Home() {
     <div className="app-shell">
       <div className="app-root">
         <div className="app-content">
-          {screen === 'welcome' && (
-            <WelcomeScreen
-              lang={lang}
-              onStart={() => startAuth('signup')}
-              onLogin={() => startAuth('login')}
-            />
-          )}
+          {/* Welcome screen ya no se usa — routing va directo a auth/onboarding/feed */}
           {screen === 'auth' && (
             <AuthScreen
               lang={lang}
               initialMode={authMode}
               onSuccess={handleAuthSuccess}
-              onBack={() => setScreen('welcome')}
+              onBack={() => {
+                if (window.history.length > 1) window.history.back();
+                else window.location.href = '/';
+              }}
             />
           )}
           {screen === 'onboarding' && (
@@ -112,7 +113,7 @@ export default function Home() {
                 SoffyAPI.updateProfile({ prefs }).catch(() => {});
                 setScreen(onboardingMode === 'edit' ? 'profile' : 'feed');
               }}
-              onBack={() => setScreen(onboardingMode === 'edit' ? 'profile' : 'welcome')}
+              onBack={() => setScreen(onboardingMode === 'edit' ? 'profile' : 'auth')}
               lang={lang}
               prefs={prefs}
               setPrefs={setPrefs}
@@ -155,7 +156,7 @@ export default function Home() {
           )}
         </div>
 
-        {screen === 'welcome' && (
+        {screen === 'auth' && (
           <div style={{ position: 'absolute', top: 20, right: 20, zIndex: 10 }}>
             <div className="lang-toggle" role="group" aria-label="Language">
               <button aria-pressed={lang === 'es'} className={lang === 'es' ? 'active' : ''} onClick={() => setLang('es')}>ES</button>
