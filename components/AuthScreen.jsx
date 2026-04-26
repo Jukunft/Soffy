@@ -5,14 +5,7 @@ import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
 import { track, identify, EVENTS } from '@/lib/analytics';
 import GoogleAccountPicker from '@/components/GoogleAccountPicker';
-
-const ZONES = [
-  { id: 'cl-scl',  label: { es: 'Santiago',      en: 'Santiago' },      flag: '🇨🇱' },
-  { id: 'mx-cdmx', label: { es: 'CDMX',          en: 'Mexico City' },   flag: '🇲🇽' },
-  { id: 'mx-gdl',  label: { es: 'Guadalajara',   en: 'Guadalajara' },   flag: '🇲🇽' },
-  { id: 'mx-mty',  label: { es: 'Monterrey',     en: 'Monterrey' },     flag: '🇲🇽' },
-  { id: 'ar-bue',  label: { es: 'Buenos Aires',  en: 'Buenos Aires' },  flag: '🇦🇷' },
-];
+import { COUNTRIES, DEFAULT_COUNTRY } from '@/lib/countries';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[+]?[0-9\s-]{8,}$/;
@@ -25,7 +18,7 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [zone, setZone] = useState('cl-scl');
+  const [zone, setZone] = useState(DEFAULT_COUNTRY);
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(false);
   const [googleOpen, setGoogleOpen] = useState(false);
@@ -211,21 +204,19 @@ export default function AuthScreen({ lang, initialMode = 'signup', onSuccess, on
         </label>
 
         {isSignup && (
-          <div className="auth-field">
-            <span className="pref-label" style={{ margin: 0 }}>{t('auth_zone')}</span>
-            <div className="auth-zones">
-              {ZONES.map(z => (
-                <button
-                  type="button"
-                  key={z.id}
-                  className={`auth-zone-chip ${zone === z.id ? 'selected' : ''}`}
-                  onClick={() => setZone(z.id)}>
-                  <span className="auth-zone-flag">{z.flag}</span>
-                  {z.label[lang]}
-                </button>
+          <label className="auth-field">
+            <span className="pref-label" style={{ margin: 0 }}>{lang === 'es' ? 'País' : 'Country'}</span>
+            <select
+              value={zone}
+              onChange={(e) => setZone(e.target.value)}
+              className="auth-input auth-select">
+              {COUNTRIES.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.flag}  {c.name}
+                </option>
               ))}
-            </div>
-          </div>
+            </select>
+          </label>
         )}
 
         {err && (

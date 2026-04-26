@@ -2,14 +2,15 @@
 import { useEffect } from 'react';
 import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
+import { COUNTRIES } from '@/lib/countries';
 
-export const ZONES = [
-  { id: 'cl-scl',  label: { es: 'Santiago',      en: 'Santiago' },      country: 'Chile',       flag: '🇨🇱' },
-  { id: 'mx-cdmx', label: { es: 'Ciudad de México', en: 'Mexico City' }, country: 'México',      flag: '🇲🇽' },
-  { id: 'mx-gdl',  label: { es: 'Guadalajara',   en: 'Guadalajara' },   country: 'México',      flag: '🇲🇽' },
-  { id: 'mx-mty',  label: { es: 'Monterrey',     en: 'Monterrey' },     country: 'México',      flag: '🇲🇽' },
-  { id: 'ar-bue',  label: { es: 'Buenos Aires',  en: 'Buenos Aires' },  country: 'Argentina',   flag: '🇦🇷' },
-];
+// Re-export para compat con imports existentes (ProfileScreen consume ZONES)
+export const ZONES = COUNTRIES.map(c => ({
+  id: c.id,
+  label: { es: c.name, en: c.name },
+  country: c.name,
+  flag: c.flag,
+}));
 
 export default function ZoneDrawer({ open, current, lang, onPick, onClose, premiumUnlocked = false }) {
   const t = useT(lang);

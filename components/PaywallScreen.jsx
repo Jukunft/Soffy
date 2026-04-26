@@ -95,10 +95,11 @@ export default function PaywallScreen({ lang, onClose, onActivated, reason = nul
       </div>
 
       <div className="paywall-features">
-        <FeatureRow icon="refresh" title={t('pw_feat_unlimited')} sub={t('pw_feat_unlimited_sub', { n: CAP })} />
-        <FeatureRow icon="mapPin"  title={t('pw_feat_passport')}  sub={t('pw_feat_passport_sub')} />
-        <FeatureRow icon="bolt"    title={t('pw_feat_priority')}  sub={t('pw_feat_priority_sub')} />
-        <FeatureRow icon="check"   title={t('pw_feat_noads')}     sub={t('pw_feat_noads_sub')} />
+        <FeatureRow icon="refresh"   title={t('pw_feat_unlimited')} sub={t('pw_feat_unlimited_sub', { n: CAP })} />
+        <FeatureRow icon="mapPin"    title={t('pw_feat_passport')}  sub={t('pw_feat_passport_sub')} />
+        <FeatureRow icon="clock"     title={t('pw_feat_no_timer')}  sub={t('pw_feat_no_timer_sub')} />
+        <FeatureRow icon="sparkles"  title={t('pw_feat_rewards')}   sub={t('pw_feat_rewards_sub')} />
+        <FeatureRow icon="check"     title={t('pw_feat_noads')}     sub={t('pw_feat_noads_sub')} />
       </div>
 
       <div className="paywall-billing">

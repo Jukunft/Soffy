@@ -102,19 +102,21 @@ export default function Landing() {
             <div className="landing-plan-name">Free</div>
             <div className="landing-plan-price">$0</div>
             <ul className="landing-plan-features">
-              <li>20 swipes/día</li>
-              <li>Descuentos en tu ciudad</li>
-              <li>Matches con timer 24h</li>
+              <li>Swipes limitados</li>
+              <li>Descuentos en tiendas y locales de tu país + online en todo el mundo</li>
+              <li>Match con timer 24h</li>
+              <li>Recompensas por usar / compartir descuentos</li>
             </ul>
           </div>
           <div className="landing-plan is-featured">
-            <div className="landing-plan-badge">LATAM PASS</div>
+            <div className="landing-plan-badge">SOFFY PRO</div>
             <div className="landing-plan-name">Pro</div>
             <div className="landing-plan-price">$2.50<span>/mes*</span></div>
             <ul className="landing-plan-features">
               <li>Swipes ilimitados</li>
-              <li>Passport: toda LATAM</li>
-              <li>Priority matches</li>
+              <li>Passport: todo el mundo</li>
+              <li>Match sin timer</li>
+              <li>Súper recompensas por usar / compartir descuentos</li>
               <li>Cero ads</li>
             </ul>
             <div className="landing-plan-hint">* Anual — $29.99/año</div>

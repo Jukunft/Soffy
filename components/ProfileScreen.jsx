@@ -4,9 +4,8 @@ import Icon from '@/components/Icon';
 import { useT } from '@/lib/i18n';
 import { SoffyAPI } from '@/lib/api';
 import { track, EVENTS } from '@/lib/analytics';
-import ZoneDrawer, { ZONES } from '@/components/ZoneDrawer';
-
-const ZONE_BY_ID = Object.fromEntries(ZONES.map(z => [z.id, z]));
+import ZoneDrawer from '@/components/ZoneDrawer';
+import { COUNTRY_BY_ID } from '@/lib/countries';
 
 export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPrefs, onOpenPaywall, onLogout }) {
   const t = useT(lang);
@@ -25,9 +24,9 @@ export default function ProfileScreen({ lang, setLang, prefs, onBack, onEditPref
   }, []);
 
   const isPremium = profile?.plan === 'premium';
-  const zone = profile?.zone || 'cl-scl';
-  const zoneInfo = ZONE_BY_ID[zone];
-  const zoneLabel = zoneInfo ? `${zoneInfo.flag} ${zoneInfo.label[lang]}` : zone;
+  const zone = profile?.zone || 'cl';
+  const zoneInfo = COUNTRY_BY_ID[zone];
+  const zoneLabel = zoneInfo ? `${zoneInfo.flag} ${zoneInfo.name}` : zone;
   const initial = (profile?.email || '?')[0].toUpperCase();
 
   const changeZone = (newZone) => {
